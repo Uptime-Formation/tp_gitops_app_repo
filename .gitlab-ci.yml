@@ -13,7 +13,7 @@ unit-test:
     - cd app
     - python test_unit.py --verbose
   only:
-    - k8s_gitlab_argocd_correction # should be master on a normal repository
+    - master
 
 build:
   image: docker:latest
@@ -26,32 +26,33 @@ build:
     - docker build --pull -t "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA" .
     - docker push "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA"
   only:
-    - k8s_gitlab_argocd_correction # should be master on a normal repository
+    - master
 
 deploy-dev:
   stage: deploy-dev
   image: nekottyo/kustomize-kubeval:latest
   before_script:
-    - git remote set-url origin https://${CI_USERNAME}:${CI_PUSH_TOKEN}@gitlab.com/e-lie/cicd_gitlab_argocd_corrections.git
-    - git config --global user.email "gitlab@gitlab.com"
-    - git config --global user.name "GitLab CI/CD"
+    # - git remote set-url origin https://${CI_USERNAME}:${CI_PUSH_TOKEN}@gitlab.com/e-lie/cicd_gitlab_argocd_corrections.git
+    # git clone infra repo 
+    - git config --global user.email "gitoops@gitoops.net"
+    - git config --global user.name "GitLabops pipeline"
   script:
-    - git checkout -B k8s_gitlab_argocd_correction
+    - git checkout -B master
     - cd k8s/dev
     - kustomize edit set image $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
     - cat kustomization.yaml
     - git commit -am '[skip ci] DEV image update'
-    - git push origin k8s_gitlab_argocd_correction
+    # - git push origin   -> push branch corresponding to app branch (env var)
   only:
-    - k8s_gitlab_argocd_correction
+    - master
 
 deploy-prod:
   stage: deploy-prod
   image: nekottyo/kustomize-kubeval:latest
   before_script:
     - git remote set-url origin https://${CI_USERNAME}:${CI_PUSH_TOKEN}@gitlab.com/e-lie/cicd_gitlab_argocd_corrections.git
-    - git config --global user.email "gitlab@gitlab.com"
-    - git config --global user.name "GitLab CI/CD"
+    - git config --global user.email "gitoops@gitoops.net"
+    - git config --global user.name "GitLabops pipeline"
   script:
     - git checkout -B k8s_gitlab_argocd_correction
     - git pull origin k8s_gitlab_argocd_correction
